@@ -28,7 +28,7 @@
   <link rel="manifest" href="./assets/manifest.01606252.json">
 
   <!-- built styles file will be auto injected -->
-  <script type="module" crossorigin src="./assets/index.702f3d12.js"></script>
+  <script type="module" crossorigin src="./assets/index.a2342c54.js"></script>
   <link rel="stylesheet" href="./assets/index.fa444a6e.css">
 </head>
 
@@ -36,6 +36,166 @@
   <div id="app"></div>
 
   
+
+
+
+
+
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+
+  <!-- Load messaging -->
+  <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-messaging.js"></script>
+
+  <script>
+    // Your web app's Firebase configuration
+    // Copy those from your Firebase account
+    // Project Settings > General > Web apps > Firebase SDK snippet
+    //
+    var firebaseConfig = {
+      apiKey: "AIzaSyAvFS8Ub2XZz-kpVawQuDgKI1YUU8VJdPo",
+      authDomain: "area-4b.firebaseapp.com",
+      databaseURL: "https://area-4b-default-rtdb.firebaseio.com",
+      projectId: "area-4b",
+      storageBucket: "area-4b.appspot.com",
+      messagingSenderId: "1064234590151",
+      appId: "1:1064234590151:web:f61cddcd37a69740a683e2"
+      /* apiKey: "XXXX",
+      authDomain: "XXXX",
+      databaseURL: "XXXX",
+      projectId: "XXXX",
+      storageBucket: "XXXX",
+      messagingSenderId: "XXXX",
+      appId: "XXXX",
+      measurementId: "XXXX" */
+    };
+
+    // Get this form you Firebase account
+    // Project Settings > Cloud Messaging > Web Configuration > Web Push certificates
+    var firebaseVapidKey = "BIax2F2SObBk5jRDpUgCR_rT-_BRX7JiImcRYHLoGDP23CLyiq22fDEzBkTS_mrYGjA-F3K0PlQGQTrX3ejv0g0";
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Initialize Messaging
+    const messaging = firebase.messaging();
+
+    checkPermissionsAndEnableFirebase();
+
+    // First request browser notification permissions
+    // For More Info: https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
+    // DEPRECATION WARNING: messaging.requestPermission() has been deprecated
+    // ( https://firebase.google.com/docs/reference/js/firebase.messaging.Messaging#requestpermission )
+    function checkPermissionsAndEnableFirebase(){
+      // Check if the browser supports notifications
+      if (!("Notification" in window)) {
+        alert("This browser does not support desktop notification");
+      }
+
+      // Check whether notification permissions have already been granted
+      else if (Notification.permission === "granted") {
+        // If permissions have been granted,
+        // enable Firebase notifications.
+        console.log("Permission already granted");
+        enableFirebaseNotifications();
+      }
+
+      // Otherwise, ask user for permission
+      else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(function (permission) {
+          // If the user accepts, enable Firebase Notifications
+          if (permission === "granted") {
+            console.log("Permission just granted");
+            enableFirebaseNotifications();
+          }
+        });
+      }
+    }
+
+    // Register Service Worker,
+    // get token,
+    // and handle foreground Firebase messages
+    //
+    function enableFirebaseNotifications() {
+      registerNotificationSW();
+      getDeviceToken();
+      handleForegroundMessages();
+    }
+
+    // Register your Service Worker.
+    // The Service Worker will handle background messages.
+    function registerNotificationSW() {
+      let registrationName = 'firebase-messaging-sw.js';
+      if('serviceWorker' in navigator
+          && !navigator.serviceWorker.getRegistration(registrationName)) {
+
+        navigator.serviceWorker.register(registrationName)
+                                  .then(function(registration) {
+                                    console.log("Service Worker Registered");
+                                    messaging.useServiceWorker(registration);
+                                  })
+                                  .catch(function(error) {
+                                    console.log("Service Worker could not be registered: ", error);
+                                  });
+      }
+    }
+
+    // Get Device Token
+    function getDeviceToken() {
+      messaging.getToken({ vapidKey: firebaseVapidKey })
+                   .then(function(token) {
+                     console.log('TOKEN: ', token);
+                     // TODO: This is a good place to
+                     // send this token to your server,
+                     // to catch any app push notifications.
+                     //          
+                     // NOTE: Make sure you only do this once per session.
+                     // We don't want to write the device on our server
+                     // with each page load.
+                   })
+                   .catch(function(error) {
+                     console.log('Could not obtain TOKEN: ', error);
+                   });
+    }
+
+    /* function handleForegroundMessages() {
+      // Handle foreground message handling
+      // (when the user is looking at the tab)
+      messaging.onMessage((payload) => {
+        console.log('Foreground Message received: ', payload);
+      });
+    } */
+
+
+
+
+    function handleForegroundMessages() {
+  // Handle foreground message handling
+  // (when the user is looking at the tab)
+  messaging.onMessage((payload) => {
+    console.log('Foreground Message received: ', payload);
+    // Customize notification here
+    const notificationTitle = payload.notification.title;
+    const notificationOptions = {
+      body: payload.notification.body,
+      icon: '/icons/192x192.png'
+    };
+
+    if (!("Notification" in window)) {
+      console.log("This browser does not support system notifications");
+    } else if (Notification.permission === "granted") {
+      var notification = new Notification(notificationTitle, notificationOptions);
+      notification.onclick = function(event) {
+        event.preventDefault();
+        window.open('http://localhost:3000/', '_blank');
+        notification.close();
+      }
+    }
+  });
+}
+
+
+  </script>
 </body>
 
 </html>
